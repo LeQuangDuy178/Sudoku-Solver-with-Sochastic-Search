@@ -5,11 +5,19 @@ import java.util.Random;
 
 public class SimpleGeneticSudokuSolver {
 
+    // Supporting properties
+    private static final int generation_display = 1;
+
+    // Sudoku board-type properties
+    // The GRID_SIZE and SUBGRID_SIZE is constant for all Sudoku board (9x9 and 3x3)
+    // The complexity of this Genetic Algorithm is defined by 3 key manually-tunable parameters
+    // Which are POPULATION_SIZE, MUTATION_RATE and MAX_GENERATIONS
+    // Lets call their size are the notations P, M and G, respectively
     private static final int GRID_SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
-    private static final int POPULATION_SIZE = 150;
-    private static final double MUTATION_RATE = 0.1; // Lower mutation for easy puzzles
-    private static final int MAX_GENERATIONS = 15000; // Fewer generations needed for easy puzzles
+    private static final int POPULATION_SIZE = 100;
+    private static final double MUTATION_RATE = 0.5; // Lower mutation for easy puzzles
+    private static final int MAX_GENERATIONS = 10; // Fewer generations needed for easy puzzles
     private static final Random RANDOM = new Random();
 
     private static class Individual {
@@ -25,17 +33,24 @@ public class SimpleGeneticSudokuSolver {
         //     this.board = copyBoard(board);
         //     this.fitness = calculateFitness(this.board);
         // }
-        
+
     }
 
+    //------------------------------------------------------------------------------------------------
+    // Method 1: solveSudokuGA(int[][] initialBoard)
+    // dtype - 2D integer array
+    // Time Complexity: O(G * P(log(P)))
+    // Space Complexity: O(P)
     public static int[][] solveSudokuGA(int[][] initialBoard) {
         List<Individual> population = initializePopulation(initialBoard);
-
+        
+        
         for (int generation = 0; generation < MAX_GENERATIONS; generation++) {
             population.sort((a, b) -> Integer.compare(a.fitness, b.fitness));
 
             if (population.get(0).fitness == 0) {
                 System.out.println("Solution found at generation: " + generation);
+                
                 return population.get(0).board;
             }
 
@@ -51,15 +66,23 @@ public class SimpleGeneticSudokuSolver {
             }
 
             population = nextGeneration;
-            if (generation % 500 == 0) {
+            if (generation % generation_display == 0) {
                 System.out.println("Generation " + generation + ", Best Fitness: " + population.get(0).fitness);
             }
         }
 
+        System.out.println("Generation number: " + MAX_GENERATIONS);
+        System.out.println("Population size: " + POPULATION_SIZE);
+        System.out.println("Mutation rate: " + MUTATION_RATE);
         System.out.println("Maximum generations reached. Best fitness: " + population.get(0).fitness);
         return population.get(0).board;
     }
 
+    //------------------------------------------------------------------------------------------------
+    // Method 2: initializePopulation(int[][] initialBoard)
+    // dtype - List<Individual>
+    // Time Complexity: O(P)
+    // Space Complexity O(P)
     private static List<Individual> initializePopulation(int[][] initialBoard) {
         List<Individual> population = new ArrayList<>();
         for (int i = 0; i < POPULATION_SIZE; i++) {
@@ -68,6 +91,11 @@ public class SimpleGeneticSudokuSolver {
         return population;
     }
 
+    //------------------------------------------------------------------------------------------------
+    // Method 3: generateRandomFilledBoard(int[][] initialBoard)
+    // dtype - 2D integer array
+    // Time Complexity: O(1)
+    // Space Complexity: O(1)
     private static int[][] generateRandomFilledBoard(int[][] initialBoard) {
         int[][] board = copyBoard(initialBoard);
         List<Integer> numbers = new ArrayList<>(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9));
@@ -87,6 +115,11 @@ public class SimpleGeneticSudokuSolver {
         return board;
     }
 
+    //------------------------------------------------------------------------------------------------
+    // Method 4: tournamentSelection(List<Individual> population)
+    // dtype - Individual
+    // Time Complexity: O(1)
+    // Space Complexity: O(1)
     private static Individual tournamentSelection(List<Individual> population) {
         int tournamentSize = 5;
         List<Individual> tournament = new ArrayList<>();
@@ -95,6 +128,12 @@ public class SimpleGeneticSudokuSolver {
         }
         return tournament.stream().min((a, b) -> Integer.compare(a.fitness, b.fitness)).orElse(null);
     }
+
+    //------------------------------------------------------------------------------------------------
+    // Method 5: crossover(int[][] parent1, int[][] parent2, int[][] initialBoard)
+    // dtype - 2D integer array
+    // Time Complexity: O(1)
+    // Space Complexity: O(1)
 
     private static int[][] crossover(int[][] parent1, int[][] parent2, int[][] initialBoard) {
         int[][] child = copyBoard(initialBoard);
@@ -108,6 +147,12 @@ public class SimpleGeneticSudokuSolver {
         }
         return child;
     }
+
+    //------------------------------------------------------------------------------------------------
+    // Method 6: mutate(int[][] board, int[][] initialBoard)
+    // dtype - void method, no dtype return
+    // Time Complexity: O(1)
+    // Space Complexity: O(1)
 
     private static void mutate(int[][] board, int[][] initialBoard) {
         Random random = new Random();
@@ -123,6 +168,12 @@ public class SimpleGeneticSudokuSolver {
         }
     }
 
+    //------------------------------------------------------------------------------------------------
+    // Method 7: calculateFitness(int[][] board)
+    // dtype - integer
+    // Time Complexity: O(1)
+    // Space Complexity: O(1)
+
     private static int calculateFitness(int[][] board) {
         int conflicts = 0;
         for (int i = 0; i < GRID_SIZE; i++) {
@@ -134,8 +185,14 @@ public class SimpleGeneticSudokuSolver {
                 conflicts += countDuplicates(getSubgrid(board, i * SUBGRID_SIZE, j * SUBGRID_SIZE));
             }
         }
+        //System.out.println("Fitness: " + conflicts);
         return conflicts;
     }
+
+    //------------------------------------------------------------------------------------------------
+    // Methods: all helper methods
+    // Time Complexity: O(1)
+    // Space Complexity: O(1)
 
     private static int countDuplicates(int[] arr) {
         List<Integer> seen = new ArrayList<>();
@@ -213,25 +270,41 @@ public class SimpleGeneticSudokuSolver {
         }
     }
 
+    //------------------------------------------------------------------------------------------------
+
     public static void main(String[] args) {
         int[][] easyPuzzle = {
-                {5, 3, 0, 0, 7, 0, 0, 0, 0},
-                {6, 0, 0, 1, 9, 5, 0, 0, 0},
-                {0, 9, 8, 0, 0, 0, 0, 6, 0},
-                {8, 0, 0, 0, 6, 0, 0, 0, 3},
-                {4, 0, 0, 8, 0, 3, 0, 0, 1},
-                {7, 0, 0, 0, 2, 0, 0, 0, 6},
-                {0, 6, 0, 0, 0, 0, 2, 8, 0},
-                {0, 0, 0, 4, 1, 9, 0, 0, 5},
-                {0, 0, 0, 0, 8, 0, 0, 7, 9}
+            {5, 3, 0, 0, 7, 0, 0, 0, 0},
+            {6, 0, 0, 1, 9, 5, 0, 0, 0},
+            {0, 9, 8, 0, 0, 0, 0, 6, 0},
+            {8, 0, 0, 0, 6, 0, 0, 0, 3},
+            {4, 0, 0, 8, 0, 3, 0, 0, 1},
+            {7, 0, 0, 0, 2, 0, 0, 0, 6},
+            {0, 6, 0, 0, 0, 0, 2, 8, 0},
+            {0, 0, 0, 4, 1, 9, 0, 0, 5},
+            {0, 0, 0, 0, 8, 0, 0, 7, 9}
+        };
+
+        int[][] hardPuzzle = {
+            {0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 3, 0, 8, 5},
+            {0, 0, 1, 0, 2, 0, 0, 0, 0},
+            {0, 0, 0, 5, 0, 7, 0, 0, 0},
+            {0, 0, 4, 0, 0, 0, 1, 0, 0},
+            {0, 9, 0, 0, 0, 0, 0, 0, 0},
+            {5, 0, 0, 0, 0, 0, 0, 7, 3},
+            {0, 0, 2, 0, 1, 0, 0, 0, 0},
+            {0, 0, 0, 0, 4, 0, 0, 0, 9}
         };
 
         System.out.println("Solving easy Sudoku with Simple Genetic Algorithm:");
         System.out.println("Initial Puzzle:");
         printBoard(easyPuzzle);
+        //printBoard(hardPuzzle);
 
         long startTime = System.currentTimeMillis();
         int[][] solution = solveSudokuGA(easyPuzzle);
+        //int[][] solution = solveSudokuGA(hardPuzzle);
         long endTime = System.currentTimeMillis();
 
         System.out.println("\nSolution:");

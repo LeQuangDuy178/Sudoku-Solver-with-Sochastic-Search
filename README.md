@@ -1,2 +1,2 @@
-# Sudoku Solver with Sochastic Search
- Sudoku Solver with Sochastic Search
+# Sudoku Solver with Stochastic Search
+ Sudoku Solver with Stochastic Search
